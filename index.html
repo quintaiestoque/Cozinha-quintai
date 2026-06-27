@@ -261,11 +261,12 @@
             { id: "file_parmegiana", nome: "Filé à Parmegiana" }
         ],
         "Croissants Folhados": [
-            { id: "croissant_frango", nome: "Croissant de Frango Catupiry" },
-            { id: "croissant_carne", nome: "Croissant de Carne de Sol" },
-            { id: "croissant_queijo_presunto", nome: "Croissant de Queijo e Presunto" },
-            { id: "croissant_chocolate", nome: "Croissant de Chocolate Belga" },
-            { id: "croissant_nutella", nome: "Croissant de Nutella c/ Morango" }
+            { id: "croissant_base", nome: "Croissant Folhado (Massa Base)", eCroissantBase: true },
+            { id: "croissant_frango", nome: "Croissant de Frango Catupiry", usaCroissant: true },
+            { id: "croissant_carne", nome: "Croissant de Carne de Sol", usaCroissant: true },
+            { id: "croissant_queijo_presunto", nome: "Croissant de Queijo e Presunto", usaCroissant: true },
+            { id: "croissant_chocolate", nome: "Croissant de Chocolate Belga", usaCroissant: true },
+            { id: "croissant_nutella", nome: "Croissant de Nutella c/ Morango", usaCroissant: true }
         ],
         "Itens Extras (Turno)": []
     };
@@ -286,11 +287,15 @@
         if (item.usaBatata) {
             badgeInsumo = `<span class="insumo-badge">🍟 Usa Insumo Batata</span>`;
         } else if (item.eBatataBase) {
-            badgeInsumo = `<span class="insumo-badge" style="color: #25d366;">📋 ESTOQUE PRINCIPAL</span>`;
+            badgeInsumo = `<span class="insumo-badge" style="color: #25d366;">📋 ESTOQUE BATATA</span>`;
+        } else if (item.usaCroissant) {
+            badgeInsumo = `<span class="insumo-badge">🥐 Usa Insumo Pão</span>`;
+        } else if (item.eCroissantBase) {
+            badgeInsumo = `<span class="insumo-badge" style="color: #25d366;">📋 ESTOQUE PÃO BASE</span>`;
         }
 
         let campoEstoqueInicial = `<input type="number" id="ini-${item.id}" value="0" min="0" ${isEditable ? '' : 'disabled'} onchange="calcularTodosOsSaldos()">`;
-        if (item.usaBatata) {
+        if (item.usaBatata || item.usaCroissant) {
             campoEstoqueInicial = `<input type="text" value="Vinculado" disabled style="background: #1a1a1a; color: #777; font-size:12px;">`;
         }
 
@@ -298,11 +303,11 @@
             <div class="item-name" id="name-${item.id}">${item.nome} ${badgeInsumo}</div>
             <div class="inputs-group">
                 <div class="input-block">
-                    <label>Inicial (Gerente)</label>
+                    <label>Inicial</label>
                     ${campoEstoqueInicial}
                 </div>
                 <div class="input-block">
-                    <label>Saídas (Cozinha)</label>
+                    <label>Saídas</label>
                     <div class="counter-control">
                         <button class="btn-counter ${isChefEditable ? 'ativo' : ''}" onclick="alterarSaida('${item.id}', -1)">-</button>
                         <input type="number" id="sai-${item.id}" value="0" min="0" disabled onchange="calcularTodosOsSaldos()">
@@ -358,7 +363,7 @@
 
     function alternarModoGerente() {
         if (!gerenteLiberado) {
-            const senhaDigitada = prompt("Digite a SENHA DO GERENTE para alterar o estoque inicial:");
+            const senhaDigitada = prompt("Digite a SENHA DO GERENTE:");
             if (senhaDigitada === SENHA_GERENTE) {
                 gerenteLiberado = true;
                 document.getElementById("btnModoGerente").innerText = "🔒 Bloquear Inicial";
@@ -366,9 +371,9 @@
                 document.getElementById("btnModoGerente").style.color = "#000";
                 document.getElementById("btnCadastrarItem").style.display = "block";
                 atualizarEstadosCampos();
-                alert("Estoque inicial e cadastro liberados!");
+                alert("Estoque inicial liberado!");
             } else {
-                alert("Senha do gerente incorreta!");
+                alert("Senha incorreta!");
             }
         } else {
             gerenteLiberado = false;
@@ -382,16 +387,16 @@
 
     function alternarModoChef() {
         if (!chefLiberado) {
-            const senhaDigitada = prompt("Digite a SENHA DA COZINHA para liberar os botões de saída:");
+            const senhaDigitada = prompt("Digite a SENHA DA COZINHA:");
             if (senhaDigitada === SENHA_CHEF) {
                 chefLiberado = true;
                 document.getElementById("btnModoChef").innerText = "🔒 Sair (Bloquear Cozinha)";
                 document.getElementById("btnModoChef").style.background = "#25d366";
                 document.getElementById("btnModoChef").style.color = "#fff";
                 atualizarEstadosCampos();
-                alert("Painel da cozinha liberado para o turno!");
+                alert("Painel da cozinha liberado!");
             } else {
-                alert("Senha da cozinha incorreta!");
+                alert("Senha incorreta!");
             }
         } else {
             chefLiberado = false;
@@ -406,7 +411,7 @@
         for (const cat in cardapioCategorizado) {
             cardapioCategorizado[cat].forEach(item => {
                 const inputIni = document.getElementById(`ini-${item.id}`);
-                if (inputIni && !item.usaBatata) inputIni.disabled = !gerenteLiberado;
+                if (inputIni && !item.usaBatata && !item.usaCroissant) inputIni.disabled = !gerenteLiberado;
 
                 const row = document.getElementById(`row-${item.id}`);
                 if (row) {
@@ -425,7 +430,7 @@
 
     function alterarSaida(id, valor) {
         if (!chefLiberado) {
-            alert("A cozinha está bloqueada. Clique em 'Entrar (Cozinha)' no topo para liberar.");
+            alert("A cozinha está bloqueada. Clique em 'Entrar (Cozinha)' para liberar.");
             return;
         }
         const inputSaida = document.getElementById(`sai-${id}`);
@@ -438,21 +443,35 @@
 
     function calcularTodosOsSaldos() {
         let totalSaidasBatata = 0;
+        let totalSaidasCroissant = 0;
+
+        // Calcula totalizações de saídas dos insumos controlados
         for (const cat in cardapioCategorizado) {
             cardapioCategorizado[cat].forEach(item => {
                 const inputSai = document.getElementById(`sai-${item.id}`);
                 const qtdSaidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
+                
                 if (item.eBatataBase || item.usaBatata) {
                     totalSaidasBatata += qtdSaidas;
+                }
+                if (item.eCroissantBase || item.usaCroissant) {
+                    totalSaidasCroissant += qtdSaidas;
                 }
             });
         }
 
-        const inputIniBatataBase = document.getElementById("ini-batata_frita");
-        const inicialBatataBase = inputIniBatataBase ? parseInt(inputIniBatataBase.value) || 0 : 0;
-        let saldoRealBatata = inicialBatataBase - totalSaidasBatata;
+        // Recupera estoques bases
+        const inputIniBatata = document.getElementById("ini-batata_frita");
+        const inicialBatata = inputIniBatata ? parseInt(inputIniBatata.value) || 0 : 0;
+        let saldoRealBatata = inicialBatata - totalSaidasBatata;
         if (saldoRealBatata < 0) saldoRealBatata = 0;
 
+        const inputIniCroissant = document.getElementById("ini-croissant_base");
+        const inicialCroissant = inputIniCroissant ? parseInt(inputIniCroissant.value) || 0 : 0;
+        let saldoRealCroissant = inicialCroissant - totalSaidasCroissant;
+        if (saldoRealCroissant < 0) saldoRealCroissant = 0;
+
+        // Distribui e atualiza as cores na tela
         for (const cat in cardapioCategorizado) {
             cardapioCategorizado[cat].forEach(item => {
                 const inputSaldo = document.getElementById(`saldo-${item.id}`);
@@ -461,6 +480,8 @@
 
                 if (item.eBatataBase || item.usaBatata) {
                     saldoFinal = saldoRealBatata;
+                } else if (item.eCroissantBase || item.usaCroissant) {
+                    saldoFinal = saldoRealCroissant;
                 } else {
                     const inputIni = document.getElementById(`ini-${item.id}`);
                     const inputSai = document.getElementById(`sai-${item.id}`);
@@ -560,7 +581,7 @@
                     const inputSaldo = document.getElementById(`saldo-${item.id}`);
                     
                     let inicialTxt = inputIni ? inputIni.value : "0";
-                    if (item.usaBatata) inicialTxt = "Vinculado";
+                    if (item.usaBatata || item.usaCroissant) inicialTxt = "Vinculado";
                     
                     const saidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
                     const saldo = inputSaldo ? parseInt(inputSaldo.value) || 0 : 0;
