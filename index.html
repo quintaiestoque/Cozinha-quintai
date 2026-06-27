@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Cozinha - No Nova Rota</title>
+    <title>Controle de Cozinha - Quintai Lounge</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -219,7 +219,7 @@
     </div>
 
     <h2>Controle de Cozinha 🧑‍🍳</h2>
-    <div class="subtitle">No Nova Rota</div>
+    <div class="subtitle">Quintai Lounge</div>
     
     <div class="chef-info">
         <label>Responsável pela Cozinha no Turno:</label>
@@ -227,7 +227,8 @@
     </div>
 
     <div id="listaItens">
-        </div>
+        <!-- Itens injetados via JavaScript por categoria -->
+    </div>
 
     <div class="chef-info" style="margin-top: 15px;">
         <label>Observações / Ocorrências da Noite:</label>
@@ -485,7 +486,6 @@
         }
     }
 
-    // ARQUIVO REESTRUTURADO BASEADO NO MODELO PDF DO NO NOVA ROTA
     function gerarPDFRelatorio() {
         const chef = document.getElementById("nomeChef").value || "Não informado";
         const obs = document.getElementById("observacoes").value || "Sem ocorrências registradas.";
@@ -529,7 +529,7 @@
         <body>
             <div class="header-main">
                 <h1>Controle de Cozinha</h1>
-                <div class="lounge">No Nova Rota Pub & Cervejaria Artesanal</div>
+                <div class="lounge">Quintai Lounge</div>
             </div>
             
             <div class="info-grid">
@@ -565,7 +565,6 @@
                     const saidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
                     const saldo = inputSaldo ? parseInt(inputSaldo.value) || 0 : 0;
                     
-                    // LÓGICA DO STATUS DO ITEM BASEADO NO SEU MODELO PDF
                     let statusTxt = "DISPONÍVEL";
                     let classeStatus = 'class="cell-center status-disp"';
                     
@@ -599,10 +598,10 @@
             
             <div class="assinaturas">
                 <div class="linha-ass">${chef}<span class="sub-ass">Responsável pela Cozinha</span></div>
-                <div class="linha-ass">Lucas Emanuel P. S. Gomes<span class="sub-ass">Gerente Operacional</span></div>
+                <div class="linha-ass">Lucas Emanuel P. S. Gomes<span class="sub-ass">Maître</span></div>
             </div>
             
-            <div class="footer-page">No Nova Rota Pub e Cervejaria Artesanal &nbsp;|&nbsp; Página 1 de 1</div>
+            <div class="footer-page">Quintai Lounge &nbsp;|&nbsp; Página 1 de 1</div>
 
             <script>
                 window.onload = function() {
@@ -619,7 +618,7 @@
         janelaImpressao.document.close();
 
         setTimeout(() => {
-            const textoZap = `📋 *FECHAMENTO DE COZINHA - NO NOVA ROTA*\n📅 Data: ${dataAtual}\n🧑‍🍳 Responsável: *${chef}*\n\n❗ _O relatório oficial de fechamento de estoque foi gerado. Por favor, salve o PDF da tela de impressão e anexe o arquivo nesta conversa._`;
+            const textoZap = `📋 *FECHAMENTO DE COZINHA - QUINTAI LOUNGE*\n📅 Data: ${dataAtual}\n🧑‍🍳 Responsável: *${chef}*\n\n❗ _O relatório oficial de fechamento de estoque foi gerado. Por favor, salve o PDF da tela de impressão e anexe o arquivo nesta conversa._`;
             const linkZap = `https://api.whatsapp.com/send?phone=${TELEFONE_GERENTE}&text=${encodeURIComponent(textoZap)}`;
             window.open(linkZap, '_blank');
         }, 1800);
