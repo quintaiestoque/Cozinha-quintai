@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Cozinha - Quintai Lounge</title>
-    <!-- Biblioteca para o PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
@@ -103,6 +102,10 @@
             border-radius: 8px;
             margin-bottom: 15px;
             border-left: 4px solid #ffc107;
+            transition: border-color 0.3s ease;
+        }
+        .item-row.alerta-critico {
+            border-left: 4px solid #ff4d4d;
         }
         .item-name {
             font-size: 17px;
@@ -133,6 +136,18 @@
             color: #777;
             border: 1px solid #2d2d2d;
             cursor: not-allowed;
+        }
+        /* Estilos específicos para o campo de Alerta Crítico em Tela */
+        .input-block input.input-alerta {
+            background: #ff4d4d !important;
+            color: #ffffff !important;
+            font-weight: bold;
+            animation: piscarAlerta 1.5s infinite;
+        }
+        @keyframes piscarAlerta {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
         .counter-control {
             display: flex;
@@ -214,8 +229,7 @@
     </div>
 
     <div id="listaItens">
-        <!-- Itens injetados via JavaScript por categoria -->
-    </div>
+        </div>
 
     <div class="chef-info" style="margin-top: 15px;">
         <label>Observações / Ocorrências da Noite:</label>
@@ -226,7 +240,6 @@
 </div>
 
 <script>
-    // Cardápio completo categorizado e corrigido - Quintai Lounge
     const cardapioCategorizado = {
         "Entradas e Belisquetes": [
             { id: "espetinho_frango", nome: "Espetinho de Frango" },
@@ -258,7 +271,6 @@
         "Itens Extras (Turno)": []
     };
 
-    // CONFIGURAÇÕES GERAIS
     const SENHA_GERENTE = "2512";
     const SENHA_CHEF = "1010";
     const TELEFONE_GERENTE = "5583988212936";
@@ -271,7 +283,6 @@
         div.className = "item-row";
         div.id = `row-${item.id}`;
         
-        // Adiciona uma marcação visual sutil se o prato depender do estoque de batata frita
         let badgeInsumo = "";
         if (item.usaBatata) {
             badgeInsumo = `<span class="insumo-badge">🍟 Usa Insumo Batata</span>`;
@@ -279,16 +290,14 @@
             badgeInsumo = `<span class="insumo-badge" style="color: #25d366;">📋 ESTOQUE PRINCIPAL</span>`;
         }
 
-        // Se o item depende da batata frita básica, o estoque inicial dele não é editado. Ele herda e mostra o estoque da batata base.
         let campoEstoqueInicial = `<input type="number" id="ini-${item.id}" value="0" min="0" ${isEditable ? '' : 'disabled'} onchange="calcularTodosOsSaldos()">`;
-        let campoEstoqueAtual = `<input type="number" id="saldo-${item.id}" value="0" disabled style="background: #1a1a1a; font-weight: bold; color: #ffc107;">`;
         
         if (item.usaBatata) {
             campoEstoqueInicial = `<input type="text" value="Vinculado" disabled style="background: #1a1a1a; color: #777; font-size:12px;">`;
         }
 
         div.innerHTML = `
-            <div class="item-name">${item.nome} ${badgeInsumo}</div>
+            <div class="item-name" id="name-${item.id}">${item.nome} ${badgeInsumo}</div>
             <div class="inputs-group">
                 <div class="input-block">
                     <label>Inicial (Gerente)</label>
@@ -304,7 +313,7 @@
                 </div>
                 <div class="input-block">
                     <label>Estoque</label>
-                    ${campoEstoqueAtual}
+                    <input type="number" id="saldo-${item.id}" value="0" disabled style="font-weight: bold;">
                 </div>
             </div>
         `;
@@ -403,7 +412,6 @@
         for (const cat in cardapioCategorizado) {
             cardapioCategorizado[cat].forEach(item => {
                 const inputIni = document.getElementById(`ini-${item.id}`);
-                // Desabilita se o gerente não tiver liberado OU se for um item que usa batata vinculada
                 if (inputIni && !item.usaBatata) inputIni.disabled = !gerenteLiberado;
 
                 const row = document.getElementById(`row-${item.id}`);
@@ -434,9 +442,7 @@
         calcularTodosOsSaldos();
     }
 
-    // NOVA LÓGICA DE CÁLCULO VINCULADO
     function calcularTodosOsSaldos() {
-        // 1. Primeiro, soma-se todas as saídas que consomem batata frita
         let totalSaidasBatata = 0;
         
         for (const cat in cardapioCategorizado) {
@@ -450,30 +456,43 @@
             });
         }
 
-        // 2. Pega o estoque inicial da batata frita simples (base)
         const inputIniBatataBase = document.getElementById("ini-batata_frita");
         const inicialBatataBase = inputIniBatataBase ? parseInt(inputIniBatataBase.value) || 0 : 0;
         
-        // 3. O saldo real restante de porções de batata na câmara/cozinha
         let saldoRealBatata = inicialBatataBase - totalSaidasBatata;
         if (saldoRealBatata < 0) saldoRealBatata = 0;
 
-        // 4. Distribui os saldos na tela para os itens normais e os vinculados
         for (const cat in cardapioCategorizado) {
             cardapioCategorizado[cat].forEach(item => {
                 const inputSaldo = document.getElementById(`saldo-${item.id}`);
+                const rowItem = document.getElementById(`row-${item.id}`);
                 
+                let saldoFinal = 0;
+
                 if (item.eBatataBase || item.usaBatata) {
-                    // Se for batata simples, batata com bacon ou isca de filé (que acompanha batata), todos mostram o mesmo estoque real restante
-                    if (inputSaldo) inputSaldo.value = saldoRealBatata;
+                    saldoFinal = saldoRealBatata;
                 } else {
-                    // Itens normais seguem a matemática padrão individual
                     const inputIni = document.getElementById(`ini-${item.id}`);
                     const inputSai = document.getElementById(`sai-${item.id}`);
                     const inicial = inputIni ? parseInt(inputIni.value) || 0 : 0;
                     const saidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
-                    let saldo = inicial - saidas;
-                    if (inputSaldo) inputSaldo.value = saldo < 0 ? 0 : saldo;
+                    saldoFinal = inicial - saidas;
+                    if (saldoFinal < 0) saldoFinal = 0;
+                }
+
+                if (inputSaldo) {
+                    inputSaldo.value = saldoFinal;
+                    
+                    // LÓGICA DE ALERTA SE FOR MENOR QUE 5
+                    if (saldoFinal < 5) {
+                        inputSaldo.classList.add("input-alerta");
+                        if (rowItem) rowItem.classList.add("alerta-critico");
+                    } else {
+                        inputSaldo.classList.remove("input-alerta");
+                        if (rowItem) rowItem.classList.remove("alerta-critico");
+                        inputSaldo.style.color = "#ffc107";
+                        inputSaldo.style.background = "#1a1a1a";
+                    }
                 }
             });
         }
@@ -484,23 +503,29 @@
         const obs = document.getElementById("observacoes").value || "Sem ocorrências registradas.";
         const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-        let templatePDF = `
-            <div style="padding: 25px; font-family: Arial, sans-serif; color: #2d2d2d;">
-                <h1 style="margin:0; font-size: 22pt; text-transform: uppercase; letter-spacing: 0.5px;">Controle de Cozinha</h1>
-                <p style="margin:5px 0 20px 0; color: #c99a2e; font-weight: bold; text-transform: uppercase; font-size:10pt;">Quintai Lounge</p>
+        const elementoTemporario = document.createElement("div");
+        elementoTemporario.style.padding = "20px";
+        elementoTemporario.style.backgroundColor = "#ffffff";
+        elementoTemporario.style.color = "#000000";
+        elementoTemporario.style.fontFamily = "Arial, sans-serif";
+
+        let conteudoPDF = `
+            <div style="color: #000000; background-color: #ffffff;">
+                <h1 style="margin:0; font-size: 22pt; text-transform: uppercase; color: #000000;">Controle de Cozinha</h1>
+                <p style="margin:5px 0 20px 0; color: #b38600; font-weight: bold; text-transform: uppercase; font-size:10pt;">Quintai Lounge</p>
                 
-                <div style="background: #f8f9fa; padding: 12px; margin-bottom: 25px; border: 1px solid #e9ecef; border-radius: 5px;">
+                <div style="background: #f2f2f2; padding: 12px; margin-bottom: 25px; border: 1px solid #d9d9d9; border-radius: 5px; color: #000000;">
                     <strong>Data do Turno:</strong> ${dataAtual} &nbsp;|&nbsp; <strong>Responsável Cozinha:</strong> ${chef}
                 </div>
         `;
 
         for (const categoria in cardapioCategorizado) {
             if (cardapioCategorizado[categoria].length > 0) {
-                templatePDF += `
-                    <h3 style="color: #1a1a1a; margin-top: 20px; border-bottom: 2px solid #ffc107; padding-bottom: 3px; text-transform: uppercase; font-size: 11pt;">${categoria}</h3>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                conteudoPDF += `
+                    <h3 style="color: #000000; margin-top: 20px; border-bottom: 2px solid #b38600; padding-bottom: 3px; text-transform: uppercase; font-size: 11pt;">${categoria}</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; color: #000000;">
                         <thead>
-                            <tr style="background: #1a1a1a; color: #fff; text-transform: uppercase; font-size: 8pt;">
+                            <tr style="background: #333333; color: #ffffff; text-transform: uppercase; font-size: 8pt;">
                                 <th style="padding: 10px; text-align: left;">Item</th>
                                 <th style="padding: 10px; text-align: center; width: 20%;">Inicial</th>
                                 <th style="padding: 10px; text-align: center; width: 20%;">Saídas</th>
@@ -521,41 +546,51 @@
                     const saidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
                     const saldo = inputSaldo ? parseInt(inputSaldo.value) || 0 : 0;
                     
-                    templatePDF += `
-                        <tr style="border-bottom: 1px solid #e9ecef; font-size: 10pt;">
+                    // Alerta de cor de fundo na tabela do PDF se o estoque estiver menor que 5
+                    let estiloCelulaSaldo = 'padding: 10px; text-align: center; font-weight: bold;';
+                    let textoAlertaPDF = '';
+                    if (saldo < 5) {
+                        estiloCelulaSaldo += ' background-color: #ffcccc; color: #cc0000;';
+                        textoAlertaPDF = ' ⚠️';
+                    }
+
+                    conteudoPDF += `
+                        <tr style="border-bottom: 1px solid #d9d9d9; font-size: 10pt; color: #000000;">
                             <td style="padding: 10px;"><strong>${item.nome}</strong></td>
                             <td style="padding: 10px; text-align: center;">${inicialTxt}</td>
                             <td style="padding: 10px; text-align: center;">${saidas}</td>
-                            <td style="padding: 10px; text-align: center; font-weight: bold; color: ${saldo <= 0 ? '#c65911' : '#2d2d2d'}">${saldo}</td>
+                            <td style="${estiloCelulaSaldo}">${saldo}${textoAlertaPDF}</td>
                         </tr>
                     `;
                 });
 
-                templatePDF += `</tbody></table>`;
+                conteudoPDF += `</tbody></table>`;
             }
         }
 
-        templatePDF += `
-                <h4 style="border-left: 4px solid #c99a2e; padding-left: 8px; text-transform: uppercase; margin-top:30px; font-size: 11pt;">Observações e Ocorrências</h4>
-                <div style="background: #f8f9fa; padding: 15px; border: 1px solid #e9ecef; border-radius: 5px; font-size: 10pt; min-height: 60px; line-height: 1.4;">
+        conteudoPDF += `
+                <h4 style="border-left: 4px solid #b38600; padding-left: 8px; text-transform: uppercase; margin-top:30px; font-size: 11pt; color: #000000;">Observações e Ocorrências</h4>
+                <div style="background: #f2f2f2; padding: 15px; border: 1px solid #d9d9d9; border-radius: 5px; font-size: 10pt; min-height: 60px; line-height: 1.4; color: #000000;">
                     ${obs}
                 </div>
                 
-                <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 10pt;">
-                    <div style="width: 45%; border-top: 1px solid #a0a0a0; padding-top: 6px;">${chef}<br><span style="color:#7f8c8d; font-size:8pt; text-transform: uppercase;">Responsável Cozinha</span></div>
-                    <div style="width: 45%; border-top: 1px solid #a0a0a0; padding-top: 6px;">Lucas Emanuel P. S. Gomes<br><span style="color:#7f8c8d; font-size:8pt; text-transform: uppercase;">Gerência Operacional</span></div>
+                <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 10pt; color: #000000;">
+                    <div style="width: 45%; border-top: 1px solid #7f7f7f; padding-top: 6px;">${chef}<br><span style="color:#595959; font-size:8pt; text-transform: uppercase;">Responsável Cozinha</span></div>
+                    <div style="width: 45%; border-top: 1px solid #7f7f7f; padding-top: 6px;">Lucas Emanuel P. S. Gomes<br><span style="color:#595959; font-size:8pt; text-transform: uppercase;">Gerência Operacional</span></div>
                 </div>
             </div>
         `;
 
+        elementoTemporario.innerHTML = conteudoPDF;
+
         const opcoes = {
             margin: 15,
             filename: `Quintai_Lounge_Cozinha_${dataAtual.replace(/\//g, '-')}.pdf`,
-            html2canvas: { scale: 2 },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().from(templatePDF).set(opcoes).save();
+        html2pdf().from(elementoTemporario).set(opcoes).save();
 
         setTimeout(() => {
             const textoZap = `📋 *FECHAMENTO DE COZINHA - QUINTAI LOUNGE*\n📅 Data: ${dataAtual}\n🧑‍🍳 Responsável: *${chef}*\n\n❗ _O PDF com o relatório detalhado de estoque e porções acabou de ser gerado e baixado no dispositivo da cozinha. Por favor, anexe o arquivo nesta conversa._`;
