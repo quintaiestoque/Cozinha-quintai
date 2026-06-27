@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Cozinha - Quintai Lounge</title>
+    <!-- Biblioteca para o PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #fff;
+            margin: 0;
+            padding: 15px;
+        }
+        h2 {
+            text-align: center;
+            color: #ffc107;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .nav-admin {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-admin {
+            background: #333;
+            color: #ffc107;
+            border: 1px solid #ffc107;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-chef {
+            background: #333;
+            color: #25d366;
+            border: 1px solid #25d366;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-cadastrar {
+            background: #1a1a1a;
+            color: #25d366;
+            border: 1px solid #25d366;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none;
+            width: 100%;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .chef-info {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #aaa;
+            font-size: 14px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #2d2d2d;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        .item-row {
+            background: #252525;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffc107;
+        }
+        .item-name {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .inputs-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .input-block {
+            flex: 1;
+        }
+        .input-block input {
+            width: 100%;
+            padding: 8px;
+            text-align: center;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .input-block input:disabled {
+            background: #1a1a1a;
+            color: #777;
+            border: 1px solid #2d2d2d;
+            cursor: not-allowed;
+        }
+        .counter-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-counter {
+            background: #444;
+            color: #888;
+            border: none;
+            width: 35px;
+            height: 35px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: not-allowed;
+        }
+        .btn-counter.ativo {
+            background: #ffc107;
+            color: #000;
+            cursor: pointer;
+        }
+        .btn-counter.ativo:active {
+            background: #ffa000;
+        }
+        .btn-pdf {
+            background: #25d366;
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
+        }
+        .btn-pdf:active {
+            background: #128c7e;
+        }
+        .category-title {
+            color: #ffc107;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 25px 0 10px 0;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+        .insumo-badge {
+            background: #3a3a3a;
+            color: #ffc107;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-admin">
+        <button class="btn-chef" id="btnModoChef" onclick="alternarModoChef()">🧑‍🍳 Entrar (Cozinha)</button>
+        <button class="btn-admin" id="btnModoGerente" onclick="alternarModoGerente()">🔓 Estoque Inicial (Gerente)</button>
+        <button class="btn-cadastrar" id="btnCadastrarItem" onclick="cadastrarNovoItem()">➕ Cadastrar Novo Item</button>
+    </div>
+
+    <h2>Controle de Cozinha 🧑‍🍳</h2>
+    <div class="subtitle">Quintai Lounge</div>
+    
+    <div class="chef-info">
+        <label>Responsável pela Cozinha no Turno:</label>
+        <input type="text" id="nomeChef" placeholder="Ex: Chef Roberto">
+    </div>
+
+    <div id="listaItens">
+        <!-- Itens injetados via JavaScript por categoria -->
+    </div>
+
+    <div class="chef-info" style="margin-top: 15px;">
+        <label>Observações / Ocorrências da Noite:</label>
+        <textarea id="observacoes" rows="3" placeholder="Ex: Algum prato esgotou ou teve quebra de insumo?"></textarea>
+    </div>
+
+    <button class="btn-pdf" onclick="gerarPDFRelatorio()">Gerar PDF e Enviar p/ Gerente 📄📱</button>
+</div>
+
+<script>
+    // Cardápio completo categorizado e corrigido - Quintai Lounge
+    const cardapioCategorizado = {
+        "Entradas e Belisquetes": [
+            { id: "espetinho_frango", nome: "Espetinho de Frango" },
+            { id: "espetinho_frango_bacon", nome: "Espetinho de Frango c/ Bacon" },
+            { id: "espetinho_carne_bacon", nome: "Espetinho de Carne c/ Bacon" },
+            { id: "isca_file", nome: "Isca de Filé Acebolado", usaBatata: true, desc: "Acompanha batata" },
+            { id: "escondidinho_camarao", nome: "Escondidinho de Camarão" },
+            { id: "escondidinho_carne", nome: "Escondidinho de Carne de Sol" },
+            { id: "caldinho_camarao", nome: "Caldinho de Camarão" },
+            { id: "caldinho_peixe", nome: "Caldinho de Peixe" },
+            { id: "bolinho_bacalhau", nome: "Bolinho de Bacalhau Português" },
+            { id: "batata_frita", nome: "Batata Frita (Simples)", eBatataBase: true },
+            { id: "batata_bacon", nome: "Batata Frita com Bacon e Queijo", usaBatata: true, desc: "Usa batata base" }
+        ],
+        "Refeições Principais": [
+            { id: "fetuccine_medalhao", nome: "Fetuccine Molho Queijo e Medalhão de Filé" },
+            { id: "risoto_camarao", nome: "Risoto de Queijo com Camarões" },
+            { id: "fetuccine_camarao", nome: "Fetuccine Trufado com Camarões" },
+            { id: "spaguetti_quinta", nome: "Spaguetti à Quinta da Colina" },
+            { id: "file_parmegiana", nome: "Filé à Parmegiana" }
+        ],
+        "Croissants Folhados": [
+            { id: "croissant_frango", nome: "Croissant de Frango Catupiry" },
+            { id: "croissant_carne", nome: "Croissant de Carne de Sol" },
+            { id: "croissant_queijo_presunto", nome: "Croissant de Queijo e Presunto" },
+            { id: "croissant_chocolate", nome: "Croissant de Chocolate Belga" },
+            { id: "croissant_nutella", nome: "Croissant de Nutella c/ Morango" }
+        ],
+        "Itens Extras (Turno)": []
+    };
+
+    // CONFIGURAÇÕES GERAIS
+    const SENHA_GERENTE = "2512";
+    const SENHA_CHEF = "1010";
+    const TELEFONE_GERENTE = "5583988212936";
+    
+    let gerenteLiberado = false;
+    let chefLiberado = false;
+
+    function criarElementoItem(item, isEditable, isChefEditable) {
+        const div = document.createElement("div");
+        div.className = "item-row";
+        div.id = `row-${item.id}`;
+        
+        // Adiciona uma marcação visual sutil se o prato depender do estoque de batata frita
+        let badgeInsumo = "";
+        if (item.usaBatata) {
+            badgeInsumo = `<span class="insumo-badge">🍟 Usa Insumo Batata</span>`;
+        } else if (item.eBatataBase) {
+            badgeInsumo = `<span class="insumo-badge" style="color: #25d366;">📋 ESTOQUE PRINCIPAL</span>`;
+        }
+
+        // Se o item depende da batata frita básica, o estoque inicial dele não é editado. Ele herda e mostra o estoque da batata base.
+        let campoEstoqueInicial = `<input type="number" id="ini-${item.id}" value="0" min="0" ${isEditable ? '' : 'disabled'} onchange="calcularTodosOsSaldos()">`;
+        let campoEstoqueAtual = `<input type="number" id="saldo-${item.id}" value="0" disabled style="background: #1a1a1a; font-weight: bold; color: #ffc107;">`;
+        
+        if (item.usaBatata) {
+            campoEstoqueInicial = `<input type="text" value="Vinculado" disabled style="background: #1a1a1a; color: #777; font-size:12px;">`;
+        }
+
+        div.innerHTML = `
+            <div class="item-name">${item.nome} ${badgeInsumo}</div>
+            <div class="inputs-group">
+                <div class="input-block">
+                    <label>Inicial (Gerente)</label>
+                    ${campoEstoqueInicial}
+                </div>
+                <div class="input-block">
+                    <label>Saídas (Cozinha)</label>
+                    <div class="counter-control">
+                        <button class="btn-counter ${isChefEditable ? 'ativo' : ''}" onclick="alterarSaida('${item.id}', -1)">-</button>
+                        <input type="number" id="sai-${item.id}" value="0" min="0" disabled onchange="calcularTodosOsSaldos()">
+                        <button class="btn-counter ${isChefEditable ? 'ativo' : ''}" onclick="alterarSaida('${item.id}', 1)">+</button>
+                    </div>
+                </div>
+                <div class="input-block">
+                    <label>Estoque</label>
+                    ${campoEstoqueAtual}
+                </div>
+            </div>
+        `;
+        return div;
+    }
+
+    function iniciarApp() {
+        const container = document.getElementById("listaItens");
+        container.innerHTML = "";
+
+        for (const categoria in cardapioCategorizado) {
+            if (cardapioCategorizado[categoria].length > 0 || categoria === "Itens Extras (Turno)") {
+                const tituloCat = document.createElement("div");
+                tituloCat.className = "category-title";
+                tituloCat.id = `cat-title-${categoria.replace(/\s+/g, '')}`;
+                tituloCat.innerText = categoria;
+                container.appendChild(tituloCat);
+
+                cardapioCategorizado[categoria].forEach(item => {
+                    container.appendChild(criarElementoItem(item, gerenteLiberado, chefLiberado));
+                });
+            }
+        }
+        calcularTodosOsSaldos();
+    }
+
+    function cadastrarNovoItem() {
+        if (!gerenteLiberado) return;
+        
+        const nomeNovoItem = prompt("Digite o nome do prato, refeição ou croissant especial:");
+        if (nomeNovoItem && nomeNovoItem.trim() !== "") {
+            const idUnico = "item_" + Date.now();
+            const novoObjeto = { id: idUnico, nome: nomeNovoItem.trim() };
+            
+            cardapioCategorizado["Itens Extras (Turno)"].push(novoObjeto);
+            
+            const tituloExtras = document.getElementById("cat-title-ItensExtras(Turno)");
+            const elementoNovo = criarElementoItem(novoObjeto, true, chefLiberado);
+            
+            tituloExtras.parentNode.insertBefore(elementoNovo, tituloExtras.nextSibling);
+            alert(`"${nomeNovoItem}" foi adicionado aos Itens Extras do turno!`);
+        }
+    }
+
+    function alternarModoGerente() {
+        if (!gerenteLiberado) {
+            const senhaDigitada = prompt("Digite a SENHA DO GERENTE para alterar o estoque inicial:");
+            if (senhaDigitada === SENHA_GERENTE) {
+                gerenteLiberado = true;
+                document.getElementById("btnModoGerente").innerText = "🔒 Bloquear Inicial";
+                document.getElementById("btnModoGerente").style.background = "#ffc107";
+                document.getElementById("btnModoGerente").style.color = "#000";
+                document.getElementById("btnCadastrarItem").style.display = "block";
+                
+                atualizarEstadosCampos();
+                alert("Estoque inicial e cadastro liberados!");
+            } else {
+                alert("Senha do gerente incorreta!");
+            }
+        } else {
+            gerenteLiberado = false;
+            document.getElementById("btnModoGerente").innerText = "🔓 Estoque Inicial (Gerente)";
+            document.getElementById("btnModoGerente").style.background = "#333";
+            document.getElementById("btnModoGerente").style.color = "#ffc107";
+            document.getElementById("btnCadastrarItem").style.display = "none";
+            
+            atualizarEstadosCampos();
+        }
+    }
+
+    function alternarModoChef() {
+        if (!chefLiberado) {
+            const senhaDigitada = prompt("Digite a SENHA DA COZINHA para liberar os botões de saída:");
+            if (senhaDigitada === SENHA_CHEF) {
+                chefLiberado = true;
+                document.getElementById("btnModoChef").innerText = "🔒 Sair (Bloquear Cozinha)";
+                document.getElementById("btnModoChef").style.background = "#25d366";
+                document.getElementById("btnModoChef").style.color = "#fff";
+                
+                atualizarEstadosCampos();
+                alert("Painel da cozinha liberado para o turno!");
+            } else {
+                alert("Senha da cozinha incorreta!");
+            }
+        } else {
+            chefLiberado = false;
+            document.getElementById("btnModoChef").innerText = "🧑‍🍳 Entrar (Cozinha)";
+            document.getElementById("btnModoChef").style.background = "#333";
+            document.getElementById("btnModoChef").style.color = "#25d366";
+            
+            atualizarEstadosCampos();
+        }
+    }
+
+    function atualizarEstadosCampos() {
+        for (const cat in cardapioCategorizado) {
+            cardapioCategorizado[cat].forEach(item => {
+                const inputIni = document.getElementById(`ini-${item.id}`);
+                // Desabilita se o gerente não tiver liberado OU se for um item que usa batata vinculada
+                if (inputIni && !item.usaBatata) inputIni.disabled = !gerenteLiberado;
+
+                const row = document.getElementById(`row-${item.id}`);
+                if (row) {
+                    const botoes = row.getElementsByClassName("btn-counter");
+                    for (let btn of botoes) {
+                        if (chefLiberado) {
+                            btn.classList.add("ativo");
+                        } else {
+                            btn.classList.remove("ativo");
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function alterarSaida(id, valor) {
+        if (!chefLiberado) {
+            alert("A cozinha está bloqueada. Clique em 'Entrar (Cozinha)' no topo para liberar.");
+            return;
+        }
+        const inputSaida = document.getElementById(`sai-${id}`);
+        let atual = parseInt(inputSaida.value) || 0;
+        atual += valor;
+        if (atual < 0) atual = 0;
+        inputSaida.value = atual;
+        calcularTodosOsSaldos();
+    }
+
+    // NOVA LÓGICA DE CÁLCULO VINCULADO
+    function calcularTodosOsSaldos() {
+        // 1. Primeiro, soma-se todas as saídas que consomem batata frita
+        let totalSaidasBatata = 0;
+        
+        for (const cat in cardapioCategorizado) {
+            cardapioCategorizado[cat].forEach(item => {
+                const inputSai = document.getElementById(`sai-${item.id}`);
+                const qtdSaidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
+                
+                if (item.eBatataBase || item.usaBatata) {
+                    totalSaidasBatata += qtdSaidas;
+                }
+            });
+        }
+
+        // 2. Pega o estoque inicial da batata frita simples (base)
+        const inputIniBatataBase = document.getElementById("ini-batata_frita");
+        const inicialBatataBase = inputIniBatataBase ? parseInt(inputIniBatataBase.value) || 0 : 0;
+        
+        // 3. O saldo real restante de porções de batata na câmara/cozinha
+        let saldoRealBatata = inicialBatataBase - totalSaidasBatata;
+        if (saldoRealBatata < 0) saldoRealBatata = 0;
+
+        // 4. Distribui os saldos na tela para os itens normais e os vinculados
+        for (const cat in cardapioCategorizado) {
+            cardapioCategorizado[cat].forEach(item => {
+                const inputSaldo = document.getElementById(`saldo-${item.id}`);
+                
+                if (item.eBatataBase || item.usaBatata) {
+                    // Se for batata simples, batata com bacon ou isca de filé (que acompanha batata), todos mostram o mesmo estoque real restante
+                    if (inputSaldo) inputSaldo.value = saldoRealBatata;
+                } else {
+                    // Itens normais seguem a matemática padrão individual
+                    const inputIni = document.getElementById(`ini-${item.id}`);
+                    const inputSai = document.getElementById(`sai-${item.id}`);
+                    const inicial = inputIni ? parseInt(inputIni.value) || 0 : 0;
+                    const saidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
+                    let saldo = inicial - saidas;
+                    if (inputSaldo) inputSaldo.value = saldo < 0 ? 0 : saldo;
+                }
+            });
+        }
+    }
+
+    function gerarPDFRelatorio() {
+        const chef = document.getElementById("nomeChef").value || "Não informado";
+        const obs = document.getElementById("observacoes").value || "Sem ocorrências registradas.";
+        const dataAtual = new Date().toLocaleDateString('pt-BR');
+
+        let templatePDF = `
+            <div style="padding: 25px; font-family: Arial, sans-serif; color: #2d2d2d;">
+                <h1 style="margin:0; font-size: 22pt; text-transform: uppercase; letter-spacing: 0.5px;">Controle de Cozinha</h1>
+                <p style="margin:5px 0 20px 0; color: #c99a2e; font-weight: bold; text-transform: uppercase; font-size:10pt;">Quintai Lounge</p>
+                
+                <div style="background: #f8f9fa; padding: 12px; margin-bottom: 25px; border: 1px solid #e9ecef; border-radius: 5px;">
+                    <strong>Data do Turno:</strong> ${dataAtual} &nbsp;|&nbsp; <strong>Responsável Cozinha:</strong> ${chef}
+                </div>
+        `;
+
+        for (const categoria in cardapioCategorizado) {
+            if (cardapioCategorizado[categoria].length > 0) {
+                templatePDF += `
+                    <h3 style="color: #1a1a1a; margin-top: 20px; border-bottom: 2px solid #ffc107; padding-bottom: 3px; text-transform: uppercase; font-size: 11pt;">${categoria}</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                        <thead>
+                            <tr style="background: #1a1a1a; color: #fff; text-transform: uppercase; font-size: 8pt;">
+                                <th style="padding: 10px; text-align: left;">Item</th>
+                                <th style="padding: 10px; text-align: center; width: 20%;">Inicial</th>
+                                <th style="padding: 10px; text-align: center; width: 20%;">Saídas</th>
+                                <th style="padding: 10px; text-align: center; width: 20%;">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                cardapioCategorizado[categoria].forEach(item => {
+                    const inputIni = document.getElementById(`ini-${item.id}`);
+                    const inputSai = document.getElementById(`sai-${item.id}`);
+                    const inputSaldo = document.getElementById(`saldo-${item.id}`);
+                    
+                    let inicialTxt = inputIni ? inputIni.value : "0";
+                    if (item.usaBatata) inicialTxt = "Vinculado";
+                    
+                    const saidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
+                    const saldo = inputSaldo ? parseInt(inputSaldo.value) || 0 : 0;
+                    
+                    templatePDF += `
+                        <tr style="border-bottom: 1px solid #e9ecef; font-size: 10pt;">
+                            <td style="padding: 10px;"><strong>${item.nome}</strong></td>
+                            <td style="padding: 10px; text-align: center;">${inicialTxt}</td>
+                            <td style="padding: 10px; text-align: center;">${saidas}</td>
+                            <td style="padding: 10px; text-align: center; font-weight: bold; color: ${saldo <= 0 ? '#c65911' : '#2d2d2d'}">${saldo}</td>
+                        </tr>
+                    `;
+                });
+
+                templatePDF += `</tbody></table>`;
+            }
+        }
+
+        templatePDF += `
+                <h4 style="border-left: 4px solid #c99a2e; padding-left: 8px; text-transform: uppercase; margin-top:30px; font-size: 11pt;">Observações e Ocorrências</h4>
+                <div style="background: #f8f9fa; padding: 15px; border: 1px solid #e9ecef; border-radius: 5px; font-size: 10pt; min-height: 60px; line-height: 1.4;">
+                    ${obs}
+                </div>
+                
+                <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 10pt;">
+                    <div style="width: 45%; border-top: 1px solid #a0a0a0; padding-top: 6px;">${chef}<br><span style="color:#7f8c8d; font-size:8pt; text-transform: uppercase;">Responsável Cozinha</span></div>
+                    <div style="width: 45%; border-top: 1px solid #a0a0a0; padding-top: 6px;">Lucas Emanuel P. S. Gomes<br><span style="color:#7f8c8d; font-size:8pt; text-transform: uppercase;">Gerência Operacional</span></div>
+                </div>
+            </div>
+        `;
+
+        const opcoes = {
+            margin: 15,
+            filename: `Quintai_Lounge_Cozinha_${dataAtual.replace(/\//g, '-')}.pdf`,
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(templatePDF).set(opcoes).save();
+
+        setTimeout(() => {
+            const textoZap = `📋 *FECHAMENTO DE COZINHA - QUINTAI LOUNGE*\n📅 Data: ${dataAtual}\n🧑‍🍳 Responsável: *${chef}*\n\n❗ _O PDF com o relatório detalhado de estoque e porções acabou de ser gerado e baixado no dispositivo da cozinha. Por favor, anexe o arquivo nesta conversa._`;
+            const linkZap = `https://api.whatsapp.com/send?phone=${TELEFONE_GERENTE}&text=${encodeURIComponent(textoZap)}`;
+            window.open(linkZap, '_blank');
+        }, 1500);
+    }
+
+    window.onload = iniciarApp;
+</script>
+
+</body>
+</html>
