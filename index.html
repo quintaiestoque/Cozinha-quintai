@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Cozinha - Quintai Lounge</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>Controle de Cozinha - No Nova Rota</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -137,7 +136,6 @@
             border: 1px solid #2d2d2d;
             cursor: not-allowed;
         }
-        /* Estilos específicos para o campo de Alerta Crítico em Tela */
         .input-block input.input-alerta {
             background: #ff4d4d !important;
             color: #ffffff !important;
@@ -221,11 +219,11 @@
     </div>
 
     <h2>Controle de Cozinha 🧑‍🍳</h2>
-    <div class="subtitle">Quintai Lounge</div>
+    <div class="subtitle">No Nova Rota</div>
     
     <div class="chef-info">
         <label>Responsável pela Cozinha no Turno:</label>
-        <input type="text" id="nomeChef" placeholder="Ex: Chef Roberto">
+        <input type="text" id="nomeChef" placeholder="Ex: Chef Roberto Silva">
     </div>
 
     <div id="listaItens">
@@ -236,7 +234,7 @@
         <textarea id="observacoes" rows="3" placeholder="Ex: Algum prato esgotou ou teve quebra de insumo?"></textarea>
     </div>
 
-    <button class="btn-pdf" onclick="gerarPDFRelatorio()">Gerar PDF e Enviar p/ Gerente 📄📱</button>
+    <button class="btn-pdf" onclick="gerarPDFRelatorio()">Gerar Relatório Oficial 📄📱</button>
 </div>
 
 <script>
@@ -245,14 +243,14 @@
             { id: "espetinho_frango", nome: "Espetinho de Frango" },
             { id: "espetinho_frango_bacon", nome: "Espetinho de Frango c/ Bacon" },
             { id: "espetinho_carne_bacon", nome: "Espetinho de Carne c/ Bacon" },
-            { id: "isca_file", nome: "Isca de Filé Acebolado", usaBatata: true, desc: "Acompanha batata" },
+            { id: "isca_file", nome: "Isca de Filé Acebolado", usaBatata: true },
             { id: "escondidinho_camarao", nome: "Escondidinho de Camarão" },
             { id: "escondidinho_carne", nome: "Escondidinho de Carne de Sol" },
             { id: "caldinho_camarao", nome: "Caldinho de Camarão" },
             { id: "caldinho_peixe", nome: "Caldinho de Peixe" },
             { id: "bolinho_bacalhau", nome: "Bolinho de Bacalhau Português" },
             { id: "batata_frita", nome: "Batata Frita (Simples)", eBatataBase: true },
-            { id: "batata_bacon", nome: "Batata Frita com Bacon e Queijo", usaBatata: true, desc: "Usa batata base" }
+            { id: "batata_bacon", nome: "Batata Frita com Bacon e Queijo", usaBatata: true }
         ],
         "Refeições Principais": [
             { id: "fetuccine_medalhao", nome: "Fetuccine Molho Queijo e Medalhão de Filé" },
@@ -291,7 +289,6 @@
         }
 
         let campoEstoqueInicial = `<input type="number" id="ini-${item.id}" value="0" min="0" ${isEditable ? '' : 'disabled'} onchange="calcularTodosOsSaldos()">`;
-        
         if (item.usaBatata) {
             campoEstoqueInicial = `<input type="text" value="Vinculado" disabled style="background: #1a1a1a; color: #777; font-size:12px;">`;
         }
@@ -367,7 +364,6 @@
                 document.getElementById("btnModoGerente").style.background = "#ffc107";
                 document.getElementById("btnModoGerente").style.color = "#000";
                 document.getElementById("btnCadastrarItem").style.display = "block";
-                
                 atualizarEstadosCampos();
                 alert("Estoque inicial e cadastro liberados!");
             } else {
@@ -379,7 +375,6 @@
             document.getElementById("btnModoGerente").style.background = "#333";
             document.getElementById("btnModoGerente").style.color = "#ffc107";
             document.getElementById("btnCadastrarItem").style.display = "none";
-            
             atualizarEstadosCampos();
         }
     }
@@ -392,7 +387,6 @@
                 document.getElementById("btnModoChef").innerText = "🔒 Sair (Bloquear Cozinha)";
                 document.getElementById("btnModoChef").style.background = "#25d366";
                 document.getElementById("btnModoChef").style.color = "#fff";
-                
                 atualizarEstadosCampos();
                 alert("Painel da cozinha liberado para o turno!");
             } else {
@@ -403,7 +397,6 @@
             document.getElementById("btnModoChef").innerText = "🧑‍🍳 Entrar (Cozinha)";
             document.getElementById("btnModoChef").style.background = "#333";
             document.getElementById("btnModoChef").style.color = "#25d366";
-            
             atualizarEstadosCampos();
         }
     }
@@ -444,12 +437,10 @@
 
     function calcularTodosOsSaldos() {
         let totalSaidasBatata = 0;
-        
         for (const cat in cardapioCategorizado) {
             cardapioCategorizado[cat].forEach(item => {
                 const inputSai = document.getElementById(`sai-${item.id}`);
                 const qtdSaidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
-                
                 if (item.eBatataBase || item.usaBatata) {
                     totalSaidasBatata += qtdSaidas;
                 }
@@ -458,7 +449,6 @@
 
         const inputIniBatataBase = document.getElementById("ini-batata_frita");
         const inicialBatataBase = inputIniBatataBase ? parseInt(inputIniBatataBase.value) || 0 : 0;
-        
         let saldoRealBatata = inicialBatataBase - totalSaidasBatata;
         if (saldoRealBatata < 0) saldoRealBatata = 0;
 
@@ -466,7 +456,6 @@
             cardapioCategorizado[cat].forEach(item => {
                 const inputSaldo = document.getElementById(`saldo-${item.id}`);
                 const rowItem = document.getElementById(`row-${item.id}`);
-                
                 let saldoFinal = 0;
 
                 if (item.eBatataBase || item.usaBatata) {
@@ -482,8 +471,6 @@
 
                 if (inputSaldo) {
                     inputSaldo.value = saldoFinal;
-                    
-                    // LÓGICA DE ALERTA SE FOR MENOR QUE 5
                     if (saldoFinal < 5) {
                         inputSaldo.classList.add("input-alerta");
                         if (rowItem) rowItem.classList.add("alerta-critico");
@@ -498,43 +485,75 @@
         }
     }
 
+    // ARQUIVO REESTRUTURADO BASEADO NO MODELO PDF DO NO NOVA ROTA
     function gerarPDFRelatorio() {
         const chef = document.getElementById("nomeChef").value || "Não informado";
         const obs = document.getElementById("observacoes").value || "Sem ocorrências registradas.";
         const dataAtual = new Date().toLocaleDateString('pt-BR');
 
-        const elementoTemporario = document.createElement("div");
-        elementoTemporario.style.padding = "20px";
-        elementoTemporario.style.backgroundColor = "#ffffff";
-        elementoTemporario.style.color = "#000000";
-        elementoTemporario.style.fontFamily = "Arial, sans-serif";
-
-        let conteudoPDF = `
-            <div style="color: #000000; background-color: #ffffff;">
-                <h1 style="margin:0; font-size: 22pt; text-transform: uppercase; color: #000000;">Controle de Cozinha</h1>
-                <p style="margin:5px 0 20px 0; color: #b38600; font-weight: bold; text-transform: uppercase; font-size:10pt;">Quintai Lounge</p>
+        let htmlImpressao = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Relatório de Cozinha - ${dataAtual}</title>
+            <style>
+                body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #000; background: #fff; padding: 30px; line-height: 1.4; }
+                .header-main { text-align: center; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 20px; }
+                h1 { margin: 0; font-size: 24pt; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+                .lounge { margin: 5px 0 0 0; color: #333; font-weight: bold; text-transform: uppercase; font-size: 13pt; letter-spacing: 0.5px; }
                 
-                <div style="background: #f2f2f2; padding: 12px; margin-bottom: 25px; border: 1px solid #d9d9d9; border-radius: 5px; color: #000000;">
-                    <strong>Data do Turno:</strong> ${dataAtual} &nbsp;|&nbsp; <strong>Responsável Cozinha:</strong> ${chef}
-                </div>
+                .info-grid { display: flex; flex-wrap: wrap; justify-content: space-between; background: #f9f9f9; padding: 15px; margin-bottom: 30px; border: 1px solid #e1e1e1; border-radius: 6px; font-size: 11pt; }
+                .info-block { width: 48%; margin-bottom: 8px; }
+                
+                .section-title { margin-top: 30px; background: #f2f2f2; padding: 6px 10px; text-transform: uppercase; font-size: 12pt; font-weight: bold; border-left: 5px solid #000; letter-spacing: 0.5px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; }
+                th { background: #1a1a1a; color: #fff; text-transform: uppercase; font-size: 9pt; padding: 10px 8px; font-weight: bold; border: 1px solid #1a1a1a; }
+                td { padding: 10px 8px; border-bottom: 1px solid #e0e0e0; border-left: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0; font-size: 10pt; }
+                
+                .status-disp { color: #0e6251; font-weight: bold; font-size: 9pt; text-transform: uppercase; }
+                .status-critico { color: #7b241c; font-weight: bold; font-size: 9pt; text-transform: uppercase; background-color: #fadbd8 !important; }
+                .status-zerado { color: #7f8c8d; font-weight: bold; font-size: 9pt; text-transform: uppercase; background-color: #eaeded !important; }
+                
+                .cell-center { text-align: center; }
+                .cell-bold { font-weight: bold; }
+                
+                .obs-title { font-weight: bold; text-transform: uppercase; margin-top: 35px; font-size: 11pt; border-left: 5px solid #000; padding-left: 8px; }
+                .obs-box { background: #fff; padding: 15px; border: 1px solid #d9d9d9; border-radius: 5px; font-size: 10.5pt; min-height: 70px; margin-top: 8px; line-height: 1.5; text-align: justify; }
+                
+                .assinaturas { margin-top: 70px; display: flex; justify-content: space-between; font-size: 10pt; text-align: center; }
+                .linha-ass { width: 42%; border-top: 1px solid #000; padding-top: 6px; font-weight: bold; }
+                .sub-ass { color: #555; font-size: 8.5pt; text-transform: uppercase; font-weight: normal; margin-top: 2px; display: block; }
+                .footer-page { text-align: center; margin-top: 60px; font-size: 8.5pt; color: #7f8c8d; border-top: 1px dashed #e0e0e0; padding-top: 10px; text-transform: uppercase; }
+            </style>
+        </head>
+        <body>
+            <div class="header-main">
+                <h1>Controle de Cozinha</h1>
+                <div class="lounge">No Nova Rota Pub & Cervejaria Artesanal</div>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-block"><strong>DATA DO TURNO:</strong> ${dataAtual}</div>
+                <div class="info-block" style="text-align: right;"><strong>STATUS DO FECHAMENTO:</strong> Concluído</div>
+                <div class="info-block"><strong>RESPONSÁVEL DA COZINHA:</strong> ${chef}</div>
+            </div>
+            
+            <div class="section-title">Movimentação de Estoque e Porções</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: left; width: 40%;">Item / Petisco</th>
+                        <th style="text-align: center; width: 15%;">Estoque Inicial</th>
+                        <th style="text-align: center; width: 15%;">Quantidade Saídas</th>
+                        <th style="text-align: center; width: 15%;">Saldo Final</th>
+                        <th style="text-align: center; width: 15%;">Status do Item</th>
+                    </tr>
+                </thead>
+                <tbody>
         `;
 
         for (const categoria in cardapioCategorizado) {
             if (cardapioCategorizado[categoria].length > 0) {
-                conteudoPDF += `
-                    <h3 style="color: #000000; margin-top: 20px; border-bottom: 2px solid #b38600; padding-bottom: 3px; text-transform: uppercase; font-size: 11pt;">${categoria}</h3>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; color: #000000;">
-                        <thead>
-                            <tr style="background: #333333; color: #ffffff; text-transform: uppercase; font-size: 8pt;">
-                                <th style="padding: 10px; text-align: left;">Item</th>
-                                <th style="padding: 10px; text-align: center; width: 20%;">Inicial</th>
-                                <th style="padding: 10px; text-align: center; width: 20%;">Saídas</th>
-                                <th style="padding: 10px; text-align: center; width: 20%;">Saldo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
                 cardapioCategorizado[categoria].forEach(item => {
                     const inputIni = document.getElementById(`ini-${item.id}`);
                     const inputSai = document.getElementById(`sai-${item.id}`);
@@ -546,61 +565,67 @@
                     const saidas = inputSai ? parseInt(inputSai.value) || 0 : 0;
                     const saldo = inputSaldo ? parseInt(inputSaldo.value) || 0 : 0;
                     
-                    // Alerta de cor de fundo na tabela do PDF se o estoque estiver menor que 5
-                    let estiloCelulaSaldo = 'padding: 10px; text-align: center; font-weight: bold;';
-                    let textoAlertaPDF = '';
-                    if (saldo < 5) {
-                        estiloCelulaSaldo += ' background-color: #ffcccc; color: #cc0000;';
-                        textoAlertaPDF = ' ⚠️';
+                    // LÓGICA DO STATUS DO ITEM BASEADO NO SEU MODELO PDF
+                    let statusTxt = "DISPONÍVEL";
+                    let classeStatus = 'class="cell-center status-disp"';
+                    
+                    if (saldo === 0) {
+                        statusTxt = "ZERADO";
+                        classeStatus = 'class="cell-center status-zerado"';
+                    } else if (saldo < 5) {
+                        statusTxt = "ALERTA CRÍTICO";
+                        classeStatus = 'class="cell-center status-critico"';
                     }
 
-                    conteudoPDF += `
-                        <tr style="border-bottom: 1px solid #d9d9d9; font-size: 10pt; color: #000000;">
-                            <td style="padding: 10px;"><strong>${item.nome}</strong></td>
-                            <td style="padding: 10px; text-align: center;">${inicialTxt}</td>
-                            <td style="padding: 10px; text-align: center;">${saidas}</td>
-                            <td style="${estiloCelulaSaldo}">${saldo}${textoAlertaPDF}</td>
+                    htmlImpressao += `
+                        <tr>
+                            <td><strong>${item.nome}</strong></td>
+                            <td class="cell-center">${inicialTxt}</td>
+                            <td class="cell-center">${saidas}</td>
+                            <td class="cell-center cell-bold">${saldo}</td>
+                            <td ${classeStatus}>${statusTxt}</td>
                         </tr>
                     `;
                 });
-
-                conteudoPDF += `</tbody></table>`;
             }
         }
 
-        conteudoPDF += `
-                <h4 style="border-left: 4px solid #b38600; padding-left: 8px; text-transform: uppercase; margin-top:30px; font-size: 11pt; color: #000000;">Observações e Ocorrências</h4>
-                <div style="background: #f2f2f2; padding: 15px; border: 1px solid #d9d9d9; border-radius: 5px; font-size: 10pt; min-height: 60px; line-height: 1.4; color: #000000;">
-                    ${obs}
-                </div>
-                
-                <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 10pt; color: #000000;">
-                    <div style="width: 45%; border-top: 1px solid #7f7f7f; padding-top: 6px;">${chef}<br><span style="color:#595959; font-size:8pt; text-transform: uppercase;">Responsável Cozinha</span></div>
-                    <div style="width: 45%; border-top: 1px solid #7f7f7f; padding-top: 6px;">Lucas Emanuel P. S. Gomes<br><span style="color:#595959; font-size:8pt; text-transform: uppercase;">Gerência Operacional</span></div>
-                </div>
+        htmlImpressao += `
+                </tbody>
+            </table>
+            
+            <div class="obs-title">Observações e Ocorrências do Turno</div>
+            <div class="obs-box">${obs.replace(/\n/g, '<br>')}</div>
+            
+            <div class="assinaturas">
+                <div class="linha-ass">${chef}<span class="sub-ass">Responsável pela Cozinha</span></div>
+                <div class="linha-ass">Lucas Emanuel P. S. Gomes<span class="sub-ass">Gerente Operacional</span></div>
             </div>
+            
+            <div class="footer-page">No Nova Rota Pub e Cervejaria Artesanal &nbsp;|&nbsp; Página 1 de 1</div>
+
+            <script>
+                window.onload = function() {
+                    window.print();
+                    setTimeout(function() { window.close(); }, 500);
+                };
+            <\/script>
+        </body>
+        </html>
         `;
 
-        elementoTemporario.innerHTML = conteudoPDF;
-
-        const opcoes = {
-            margin: 15,
-            filename: `Quintai_Lounge_Cozinha_${dataAtual.replace(/\//g, '-')}.pdf`,
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().from(elementoTemporario).set(opcoes).save();
+        let janelaImpressao = window.open('', '_blank');
+        janelaImpressao.document.write(htmlImpressao);
+        janelaImpressao.document.close();
 
         setTimeout(() => {
-            const textoZap = `📋 *FECHAMENTO DE COZINHA - QUINTAI LOUNGE*\n📅 Data: ${dataAtual}\n🧑‍🍳 Responsável: *${chef}*\n\n❗ _O PDF com o relatório detalhado de estoque e porções acabou de ser gerado e baixado no dispositivo da cozinha. Por favor, anexe o arquivo nesta conversa._`;
+            const textoZap = `📋 *FECHAMENTO DE COZINHA - NO NOVA ROTA*\n📅 Data: ${dataAtual}\n🧑‍🍳 Responsável: *${chef}*\n\n❗ _O relatório oficial de fechamento de estoque foi gerado. Por favor, salve o PDF da tela de impressão e anexe o arquivo nesta conversa._`;
             const linkZap = `https://api.whatsapp.com/send?phone=${TELEFONE_GERENTE}&text=${encodeURIComponent(textoZap)}`;
             window.open(linkZap, '_blank');
-        }, 1500);
+        }, 1800);
     }
 
     window.onload = iniciarApp;
 </script>
-
 </body>
 </html>
